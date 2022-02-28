@@ -3,14 +3,13 @@
 #define LED_PIN_DINO_1 12
 #define NUM_LEDS_DINO_1 22
 CRGB leds_DINO_1[NUM_LEDS_DINO_1];
-
-#define TRANSITION_TIME 10 //seconds
-#define BRIGHTNESS 50
-int new_color[3];
-
 #define R 0
 #define G 1
 #define B 2
+int new_color[3];
+
+#define TRANSITION_TIME 5 //seconds
+#define BRIGHTNESS 50
 
 void setup() {
   delay(3000); //power-up safety delay
@@ -48,7 +47,7 @@ void loop() {
     }
     FastLED.show();
     printCurrentColor();
-    delay(39);
+    delay(TRANSITION_TIME * 1000 / 255); //seconds/max color change
   }
 }
 
