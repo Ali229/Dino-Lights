@@ -1,97 +1,77 @@
 #include <FastLED.h>
-#define LED_PIN_6 12
-#define LED_PIN_8 14
-#define LED_PIN_10 27
-#define NUM_LEDS_6 22
-#define NUM_LEDS_8 27
-#define NUM_LEDS_10 22
-#define BRIGHTNESS 5
-#define LED_TYPE WS2812
-#define COLOR_ORDER GRB
-CRGB leds_6[NUM_LEDS_6];
-CRGB leds_8[NUM_LEDS_8];
-CRGB leds_10[NUM_LEDS_10];
-#define UPDATES_PER_SECOND 2
-const int ldrPin = A0;
-CRGBPalette16 currentPalette;
-TBlendType currentBlending;
-extern CRGBPalette16 myRedWhiteBluePalette;
-extern const TProgmemPalette16 myRedWhiteBluePalette_p PROGMEM;
+
+#define LED_PIN_DINO_1 12
+#define NUM_LEDS_DINO_1 22
+CRGB leds_DINO_1[NUM_LEDS_DINO_1];
+
+#define TRANSITION_TIME 10 //seconds
+#define BRIGHTNESS 50
+int new_color[3];
+
+#define R 0
+#define G 1
+#define B 2
+
 void setup() {
-delay( 3000 ); // power-up safety delay
-FastLED.addLeds<LED_TYPE, LED_PIN_6, COLOR_ORDER>(leds_6,
-NUM_LEDS_6).setCorrection( TypicalLEDStrip );
-FastLED.setBrightness( BRIGHTNESS );
-delay( 3000 ); // power-up safety delay
-FastLED.addLeds<LED_TYPE, LED_PIN_8, COLOR_ORDER>(leds_8,
-NUM_LEDS_8).setCorrection( TypicalLEDStrip );
-FastLED.setBrightness( BRIGHTNESS );
-delay( 3000 ); // power-up safety delay
-FastLED.addLeds<LED_TYPE, LED_PIN_10, COLOR_ORDER>(leds_10,
-NUM_LEDS_10).setCorrection( TypicalLEDStrip );
-FastLED.setBrightness( BRIGHTNESS );
-currentPalette = RainbowColors_p;
-currentBlending = LINEARBLEND;
-Serial.begin(115200);
-pinMode(ldrPin, INPUT);
+  delay(3000); //power-up safety delay
+  Serial.begin(115200);
+  FastLED.addLeds < WS2812, LED_PIN_DINO_1, GRB > (leds_DINO_1, NUM_LEDS_DINO_1).setCorrection(TypicalLEDStrip);
+  FastLED.setBrightness(BRIGHTNESS);
+  FastLED.clear();
+  FastLED.show();
 }
-void loop()
-{
-int ldrStatus = analogRead(ldrPin);
-Serial.println(ldrStatus);
-delay(500);
-ChangePalettePeriodically();
-static uint8_t startIndex = 0;
-startIndex = startIndex + 1; /* motion speed */
-FillLEDsFromPaletteColors( startIndex);
-FastLED.show();
-FastLED.delay(1000 / UPDATES_PER_SECOND);
+
+void loop() {
+  getColor();
+  printNewColor();
+
+  while (leds_DINO_1[0].r != new_color[R] || leds_DINO_1[0].g != new_color[G] || leds_DINO_1[0].b != new_color[B]) {
+    for (int l = 0; l < NUM_LEDS_DINO_1; l++) {
+
+      if (leds_DINO_1[l].r < new_color[R]) {
+        leds_DINO_1[l].r++;
+      } else if (leds_DINO_1[l].r > new_color[R]) {
+        leds_DINO_1[l].r--;
+      }
+
+      if (leds_DINO_1[l].g < new_color[G]) {
+        leds_DINO_1[l].g++;
+      } else if (leds_DINO_1[l].g > new_color[G]) {
+        leds_DINO_1[l].g--;
+      }
+
+      if (leds_DINO_1[l].b < new_color[B]) {
+        leds_DINO_1[l].b++;
+      } else if (leds_DINO_1[l].b > new_color[B]) {
+        leds_DINO_1[l].b--;
+      }
+    }
+    FastLED.show();
+    printCurrentColor();
+    delay(39);
+  }
 }
-void FillLEDsFromPaletteColors( uint8_t colorIndex)
-{
-uint8_t brightness = 255;
-for( int i = 0; i < NUM_LEDS_6; ++i) {
-leds_6[i] = ColorFromPalette( currentPalette, colorIndex, brightness,
-currentBlending);
-colorIndex += 3;
+
+void printCurrentColor() {
+  Serial.println("Current color: ");
+  Serial.print(leds_DINO_1[0].r);
+  Serial.print(" ");
+  Serial.print(leds_DINO_1[0].g);
+  Serial.print(" ");
+  Serial.println(leds_DINO_1[0].b);
 }
-for( int i = 0; i < NUM_LEDS_8; ++i) {
-leds_8[i] = ColorFromPalette( currentPalette, colorIndex, brightness,
-currentBlending);
-colorIndex += 3;
+
+void printNewColor() {
+  Serial.println("New color: ");
+  Serial.print(new_color[0]);
+  Serial.print(" ");
+  Serial.print(new_color[1]);
+  Serial.print(" ");
+  Serial.println(new_color[2]);
 }
-for( int i = 0; i < NUM_LEDS_10; ++i) {
-leds_10[i] = ColorFromPalette( currentPalette, colorIndex, brightness,
-currentBlending);
-colorIndex += 3;
+
+void getColor() {
+  new_color[0] = rand() % 255;
+  new_color[1] = rand() % 255;
+  new_color[2] = rand() % 255;
 }
-}
-void ChangePalettePeriodically()
-{
-uint8_t secondHand = (millis() / 1000) % 60;
-static uint8_t lastSecond = 99;
-if( lastSecond != secondHand) {
-lastSecond = secondHand;
-if( secondHand == 0) { currentPalette = RainbowColors_p;
-currentBlending = LINEARBLEND; }
-}
-}
-const TProgmemPalette16 myRedWhiteBluePalette_p PROGMEM =
-{
-CRGB::Red,
-CRGB::Gray, // 'white' is too bright compared to red and blue
-CRGB::Blue,
-CRGB::Black,
-CRGB::Red,
-CRGB::Gray,
-CRGB::Blue,
-CRGB::Black,
-CRGB::Red,
-CRGB::Red,
-CRGB::Gray,
-CRGB::Gray,
-CRGB::Blue,
-CRGB::Blue,
-CRGB::Black,
-CRGB::Black
-};
