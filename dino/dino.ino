@@ -9,18 +9,29 @@ CRGB leds_DINO_1[NUM_LEDS_DINO_1];
 int new_color[3];
 
 #define TRANSITION_TIME 5 //seconds
-#define BRIGHTNESS 50
+#define BRIGHTNESS 40
+int brightness = 40;
 
 void setup() {
   delay(3000); //power-up safety delay
   Serial.begin(115200);
   FastLED.addLeds < WS2812, LED_PIN_DINO_1, GRB > (leds_DINO_1, NUM_LEDS_DINO_1).setCorrection(TypicalLEDStrip);
-  FastLED.setBrightness(BRIGHTNESS);
+  FastLED.setBrightness(brightness);
   FastLED.clear();
   FastLED.show();
 }
 
 void loop() {
+  if (Serial.available()) {
+    String command = Serial.readStringUntil('\n');
+
+    if (command == "fb") {
+      fadeBlack();
+    }
+    else if (command == "br") {
+      fadeBrightness();
+    }
+  }
   getColor();
   printNewColor();
 
@@ -48,6 +59,22 @@ void loop() {
     FastLED.show();
     printCurrentColor();
     delay(TRANSITION_TIME * 1000 / 255); //seconds/max color change
+  }
+}
+
+void fadeBlack() {
+  for(int x = 0; x < 688; x++) {
+    fadeToBlackBy(leds_DINO_1, NUM_LEDS_DINO_1, 1);
+    FastLED.show();
+  }
+}
+
+void fadeBrightness() {
+  for(int x = 0; x < BRIGHTNESS; x++) {
+    FastLED.setBrightness(--brightness);
+    Serial.println(brightness);
+    FastLED.show();
+    delay(50);
   }
 }
 
