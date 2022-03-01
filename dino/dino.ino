@@ -11,6 +11,7 @@ int new_color[3];
 #define TRANSITION_TIME 5 //seconds
 #define BRIGHTNESS 40
 int brightness = 40;
+bool lightOn = true;
 
 void setup() {
   delay(3000); //power-up safety delay
@@ -24,16 +25,22 @@ void setup() {
 void loop() {
   if (Serial.available()) {
     String command = Serial.readStringUntil('\n');
-
-    if (command == "fb") {
-      fadeBlack();
+    if (command == "on") {
+      lightOn = true;
     }
-    else if (command == "br") {
-      fadeBrightness();
+    else if (command == "f") {
+      fadeOut();
     }
   }
+
+  if(lightOn) {
+    fadeColors();
+  }
+
+}
+
+void fadeColors() {
   getColor();
-  printNewColor();
 
   while (leds_DINO_1[0].r != new_color[R] || leds_DINO_1[0].g != new_color[G] || leds_DINO_1[0].b != new_color[B]) {
     for (int l = 0; l < NUM_LEDS_DINO_1; l++) {
@@ -57,25 +64,18 @@ void loop() {
       }
     }
     FastLED.show();
-    printCurrentColor();
     delay(TRANSITION_TIME * 1000 / 255); //seconds/max color change
   }
 }
 
-void fadeBlack() {
-  for(int x = 0; x < 688; x++) {
+void fadeOut() {
+  for (int x = 0; x < 688; x++) {
     fadeToBlackBy(leds_DINO_1, NUM_LEDS_DINO_1, 1);
     FastLED.show();
   }
-}
-
-void fadeBrightness() {
-  for(int x = 0; x < BRIGHTNESS; x++) {
-    FastLED.setBrightness(--brightness);
-    Serial.println(brightness);
-    FastLED.show();
-    delay(50);
-  }
+  FastLED.clear();
+  FastLED.show();
+  lightOn = false;
 }
 
 void printCurrentColor() {
