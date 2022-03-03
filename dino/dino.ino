@@ -10,11 +10,10 @@ unsigned int new_color[3];
 
 unsigned long previousMillis = 0;
 unsigned long currentMillis = 0;
-#define TRANSITION_TIME 40 //milliseconds
-#define BRIGHTNESS 50
-int brightness = 40;
+unsigned long previousMillisColorChange = 0;
+#define TRANSITION_TIME 20 //milliseconds
+int brightness = 32;
 bool lightOn = true;
-unsigned long previosMillisColorChange = 0;
 
 void setup() {
   delay(3000); //power-up safety delay
@@ -31,13 +30,12 @@ void loop() {
     String command = Serial.readStringUntil('\n');
     if (command == "on") {
       lightOn = true;
-    }
-    else if (command == "f") {
+    } else if (command == "f") {
       fadeOut();
     }
   }
 
-  if(currentMillis - previousMillis >= TRANSITION_TIME && lightOn) {
+  if (lightOn && currentMillis - previousMillis >= TRANSITION_TIME) {
     previousMillis = currentMillis;
     ColorTranisition();
   }
@@ -67,8 +65,7 @@ void ColorTranisition() {
       }
     }
     FastLED.show();
-  }
-  else {
+  } else {
     getColor();
   }
 }
@@ -102,13 +99,15 @@ void printNewColor() {
 }
 
 void getColor() {
-  unsigned long elaspedTime = currentMillis - previosMillisColorChange;
-  previosMillisColorChange = currentMillis;
-  Serial.print("Elasped Time: ");
-  Serial.print(elaspedTime/1000);
-  Serial.println("s");
   new_color[0] = rand() % 255;
   new_color[1] = rand() % 255;
   new_color[2] = rand() % 255;
-  // printNewColor();
+}
+
+void printTransitionTime() {
+  unsigned long elaspedTime = currentMillis - previousMillisColorChange;
+  previousMillisColorChange = currentMillis;
+  Serial.print("Elasped Time: ");
+  Serial.print(elaspedTime / 1000);
+  Serial.println("s");
 }
