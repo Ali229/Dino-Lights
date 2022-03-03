@@ -6,12 +6,15 @@ CRGB leds_DINO_1[NUM_LEDS_DINO_1];
 #define R 0
 #define G 1
 #define B 2
-int new_color[3];
+unsigned int new_color[3];
 
-#define TRANSITION_TIME 5 //seconds
-#define BRIGHTNESS 40
+unsigned long previousMillis = 0;
+unsigned long currentMillis = 0;
+#define TRANSITION_TIME 40 //milliseconds
+#define BRIGHTNESS 50
 int brightness = 40;
 bool lightOn = true;
+unsigned long previosMillisColorChange = 0;
 
 void setup() {
   delay(3000); //power-up safety delay
@@ -23,6 +26,7 @@ void setup() {
 }
 
 void loop() {
+  currentMillis = millis();
   if (Serial.available()) {
     String command = Serial.readStringUntil('\n');
     if (command == "on") {
@@ -33,16 +37,15 @@ void loop() {
     }
   }
 
-  if(lightOn) {
-    fadeColors();
+  if(currentMillis - previousMillis >= TRANSITION_TIME && lightOn) {
+    previousMillis = currentMillis;
+    ColorTranisition();
   }
 
 }
 
-void fadeColors() {
-  getColor();
-
-  while (leds_DINO_1[0].r != new_color[R] || leds_DINO_1[0].g != new_color[G] || leds_DINO_1[0].b != new_color[B]) {
+void ColorTranisition() {
+  if (leds_DINO_1[0].r != new_color[R] || leds_DINO_1[0].g != new_color[G] || leds_DINO_1[0].b != new_color[B]) {
     for (int l = 0; l < NUM_LEDS_DINO_1; l++) {
 
       if (leds_DINO_1[l].r < new_color[R]) {
@@ -64,7 +67,9 @@ void fadeColors() {
       }
     }
     FastLED.show();
-    delay(TRANSITION_TIME * 1000 / 255); //seconds/max color change
+  }
+  else {
+    getColor();
   }
 }
 
@@ -97,7 +102,13 @@ void printNewColor() {
 }
 
 void getColor() {
+  unsigned long elaspedTime = currentMillis - previosMillisColorChange;
+  previosMillisColorChange = currentMillis;
+  Serial.print("Elasped Time: ");
+  Serial.print(elaspedTime/1000);
+  Serial.println("s");
   new_color[0] = rand() % 255;
   new_color[1] = rand() % 255;
   new_color[2] = rand() % 255;
+  // printNewColor();
 }
