@@ -7,11 +7,9 @@ CRGB leds_DINO_1[NUM_LEDS_DINO_1];
 #define G 1
 #define B 2
 unsigned int new_color[3];
-
 unsigned long previousMillis = 0;
 unsigned long currentMillis = 0;
-unsigned long previousMillisColorChange = 0;
-#define TRANSITION_TIME 20 //milliseconds
+unsigned int transitionTime = 20; //seconds
 int brightness = 32;
 bool lightOn = true;
 
@@ -35,9 +33,10 @@ void loop() {
     }
   }
 
-  if (lightOn && currentMillis - previousMillis >= TRANSITION_TIME) {
-    previousMillis = currentMillis;
-    ColorTranisition();
+  EVERY_N_MILLISECONDS(20) {
+    if (lightOn) {
+      ColorTranisition();
+    }
   }
 
 }
@@ -99,14 +98,14 @@ void printNewColor() {
 }
 
 void getColor() {
-  new_color[0] = rand() % 255;
-  new_color[1] = rand() % 255;
-  new_color[2] = rand() % 255;
+  new_color[R] = rand() % 255;
+  new_color[G] = rand() % 255;
+  new_color[B] = rand() % 255;
 }
 
 void printTransitionTime() {
-  unsigned long elaspedTime = currentMillis - previousMillisColorChange;
-  previousMillisColorChange = currentMillis;
+  unsigned long elaspedTime = currentMillis - previousMillis;
+  previousMillis = currentMillis;
   Serial.print("Elasped Time: ");
   Serial.print(elaspedTime / 1000);
   Serial.println("s");
