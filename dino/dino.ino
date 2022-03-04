@@ -9,7 +9,7 @@ CRGB leds_DINO_1[NUM_LEDS_DINO_1];
 unsigned int new_color[3];
 unsigned long previousMillis = 0;
 unsigned long currentMillis = 0;
-unsigned int transitionTime = 40; //seconds
+unsigned int transitionTime = 40; //milliseconds
 int brightness = 32;
 bool lightOn = true;
 
